@@ -1,12 +1,14 @@
 var rights = 0;
 var wrongs = 0;
 var timeLeft = 10;
-var questionIndex = 0;
-var correctOption = "";
-var gameInProgress;
-var intervalId;
+var questionIndex = undefined;
+var currentQ = undefined;
+var correctOption = undefined;
+var gameInProgress = false;
+var intervalId = undefined;
+//var current;
 
-var questionsArrays = [];
+var questionsArray = [];
 var holdQuestions = [];
 
 /* question objects set "question," answer "options," and "correct" answer keys and push object to array */
@@ -96,7 +98,175 @@ var johnnyBravo = {
 }
 holdQuestions.push(johnnyBravo);
 
-/* function resizes videos by applying a css class */
+$(document).ready(function () {
+    /* clicking #startGame button starts the game and runs the anonymous function */
+    $("#startGame").on("click", function () {
+        questionIndex = -1;
+        /* hide's #startGame button once it has been pressed */
+        $("#startGame").css("display", "none");
+        /* f questionOrder pushes the question objects into the questions Array in a random order */
+        questionOrder();
+        console.log(questionsArray);
+        playGame();
+    });
+});
+
+function playGame() {
+    changeQuestionText();
+    $("#gameElements").css("display", "block");
+    startTime();
+    $("#answerOptions").one("click", function() {
+        pauseGame();
+        answerRightWrong($(event.target));
+    });
+}
+
+/* function uses holdQuestions as a way to push the questions to the final array in a random order so each round doesn't repeat questions in the same order each time */
+function questionOrder() {
+    for (i = 0; i < holdQuestions.length; i++) {
+        do {
+            let question = Math.floor(Math.random() * holdQuestions.length);
+            if (!questionsArray.includes(holdQuestions[question])) {
+                questionsArray.push(holdQuestions[question]);
+            }
+        } while (questionsArray.length < holdQuestions.length)
+    }
+}
+
+/* function sets the html game text based on the current questionIndex */
+function changeQuestionText() {
+    questionIndex++;
+    console.log(questionIndex);
+    /* if nextQ button is showing, hide it on the new question */
+    if ($("#nextQ").css("display")==="block") {
+        $("#nextQ").css("display", "none");
+    }
+    $("#answerOptions").empty();
+    /* remove anything inside the #video div */
+    $("#video").empty();
+    /* define the current question based on the question index */
+    currentQ = questionsArray[questionIndex];
+    /* set up the question ans answer option text bassed on the curernt question index */
+    $("#questionText").text(currentQ.question);
+    /* sets variable answerArray equal to an array of possible answer choices (in a random order) for the current question */
+    let answersArray = answerOrder(currentQ);
+    /* places each possible answer held in answerArray into an in individual list item and appends it to the #answerOptions div */
+    answersArray.forEach(function (answerOption) {
+        let aswerText = $("<li>").text(answerOption);
+        $("#answerOptions").append(aswerText);
+    });
+    /* function handles answer option list item hover effect */
+    $("li").hover(function(){
+        $(this).css("background-color", "#f9f9f9");
+    }, function(){
+        $(this).css("background-color", "inherit");
+    });
+}
+
+/* function uses holdAnswers as a way to push the possible answer options into the final answersArray in a random order */
+function answerOrder(currentQ) {
+    let holdAnswers = [];
+    for (i = 0; i < currentQ.options.length; i++) {
+        /* this for do while sets up the available answer options in a random order */
+        do {
+            let answerIndex = Math.floor(Math.random() * currentQ.options.length);
+            if (!holdAnswers.includes(currentQ.options[answerIndex])) {
+                holdAnswers.push(currentQ.options[answerIndex]);
+            }
+        } while (holdAnswers.length < currentQ.options.length);
+    }
+    return holdAnswers;
+}
+/* sets game status to in progress and starts countdown function */
+function startTime() {
+    if (!gameInProgress) {
+        intervalId = setInterval(countdown, 1000);
+        gameInProgress = true;
+    };
+}
+
+/* function keeps the game moving forward as time left decrements by 1 each second */
+function countdown() {
+    timeLeft--;
+    $("#timeLeft").text(timeLeft);
+    if (timeLeft === 0) {
+        wrongs++;
+        pauseGame();
+    }
+}
+
+/* function that decides wheterht he user choice was right or wrong and lets him or her know it*/
+function answerRightWrong(liChosen) {
+    correctOption = currentQ.correct;
+    var that = liChosen;
+    if ($(that).text() === correctOption) {
+        rights++;
+        $(that).css("background-color", "#98FB98");
+        /*let optionText = $(that).text();
+        $(that).text(optionText + "—You make the cartoon gods proud.");*/
+        pauseGame();
+    }
+    else {
+        wrongs++;
+        $(that).css("background-color", "#FFB2B2");
+        /*let optionText = $(that).text();
+        $(that).text(optionText + "—You call yourself a 90's kid?");*/
+        pauseGame();
+    }
+}
+
+function pauseGame() {
+    /* pause time */
+    pauseTime();
+    /* display option to view related video */
+    displayVideo();
+    /* show nextClick button */
+    nextClick();
+}
+
+/* function to pause countdown and set game to no longer in progress  stop allowing player to select answer choice */
+function pauseTime() {
+    clearInterval(intervalId);
+    gameInProgress = false;
+    $("li").off("mouseenter mouseleave");
+    $("#answerOptions").off("click");
+    if(timeLeft === 0) {
+        $("li").css("background-color", "inherit");
+    }
+}
+
+/* function that sets up #video div */
+function displayVideo() {
+    if(currentQ.video){
+        $("#video").html("<div id=\"vidDiv\"></div>");
+        $("#vidDiv").html(currentQ.video);
+        var vidDivText = $("<p>").text("Watch Video");
+        $(vidDivText).attr("id", "watchText");
+        $(vidDivText).prependTo("#video");
+        $(vidDivText).css("background-color", "#f9f9f9");
+        /* click #watchText to run videoVisibility function */
+        $("#watchText").on("click", videoVisibility);
+        /* sets hover properties for #watchText */
+        $("#watchText").hover(function(){$("#watchText").css("background-color", "purple");}, function() {$("#watchText").css("background-color", "yellow");});
+    }
+}
+
+/* function that displays and hides video when #watchText is clicked*/
+function videoVisibility() {
+    if ($("iframe").css("display") === "none") {
+        /* video is resized depending on it's aspect ratio using f resizeVid */
+        resizeVid();
+        /* video is set to be displayed to user */
+        $("iframe").css("display", "block");
+    }
+    else if($("iframe").css("display") === "block"){
+        /* video is hidden from user */
+        $("#vidDiv").removeAttr("class");
+        $("iframe").css("display", "none");  
+    }
+}
+
+/* function uses a switch case to apply  a predetermined css class to #vidDiv in order to resize it to fit the video's aspect ratio */
 function resizeVid() {
     switch(correctOption) {
         case "naked": $("#vidDiv").attr("class", "traditionalAspect");
@@ -120,168 +290,70 @@ function resizeVid() {
     }
 }
 
-/* function that displays and hides video */
-function videoVisibility() {
-    //console.log("clicked on watch video");
-    if ($("iframe").css("display") === "none") {
-        //console.log("display was none but now it's block");
-        resizeVid();
-        $("iframe").css("display", "block");
-    }
-    else if($("iframe").css("display") === "block"){
-        //console.log("display was block but now it's none");
-        $("#vidDiv").removeAttr("class");
-        $("iframe").css("display", "none");  
-        //$("#vidDiv").removeAttr("style");
-        /*console.log($("#vidDiv").attr("class"));
-        if(!$("#vidDiv").hasClass()) {
-            
-        }*/
-    }
-}
-
-/* function that sets up #video div */
-function displayVideo() {
-    let video = questionsArrays[questionIndex]["video"];
-    if(video){
-        $("#video").html("<div id=\"vidDiv\"></div>");
-        $("#vidDiv").html(video);
-        var vidDivText = $("<p>").text("Watch Video");
-        $(vidDivText).attr("id", "watchText");
-        $(vidDivText).prependTo("#video");
-        $(vidDivText).css("background-color", "#f9f9f9");
-        $("#watchText").click(videoVisibility);
-    }
-}
-
-/* function uses holdQuestions as a way to push the questions to the final array in a random order so each round doesn't repeat questions in the same order each time */
-function questionOrder() {
-    for (i = 0; i < holdQuestions.length; i++) {
-        do {
-            let question = Math.floor(Math.random() * holdQuestions.length);
-            if (!questionsArrays.includes(holdQuestions[question])) {
-                questionsArrays.push(holdQuestions[question]);
-            }
-        } while (questionsArrays.length < holdQuestions.length)
-    }
-}
-
-/* function uses holdAnswer as a way to push the possible answer options into the final answersArray in a random order */
-function answerOrder(current) {
-    let holdAnswer = [];
-    for (i = 0; i < current.options.length; i++) {
-        /* this for do while sets up the available answer options in a random order */
-        do {
-            let answer = Math.floor(Math.random() * current.options.length);
-            if (!holdAnswer.includes(current.options[answer])) {
-                holdAnswer.push(current.options[answer]);
-            }
-        } while (holdAnswer.length < current.options.length);
-    }
-    return holdAnswer;
-}
-
-/* function sets the html game text based on the current questionIndex */
-function changeQuestionsText(questionIndex) {
-    /* if nextQ button is showing, hide it on the new question */
-    if ($("#nextQ").css("display")==="block") {
-        $("#nextQ").css("display", "none");
-    }
-    /* remove anything inside the #video div */
-    $("#video").empty();
-    /* define the current question based on the question index */
-    current = questionsArrays[questionIndex];
-    /* set up the question ans answer option text bassed on the curernt question index */
-    $("#questionText").text(current.question);
-    let answersArray = answerOrder(current);
-    answersArray.forEach(function (op) {
-        let aswerText = $("<li>").text(op);
-        $("#answerOptions").append(aswerText);
-    });
-    $("#answerOptions").click(isWrongRight);
-    $("li").hover(function(){
-        $(this).css("background-color", "#f9f9f9");
-    }, function(){
-        $(this).css("background-color", "inherit");
-    });
-}
-
-/* function to reset trivia game html answer text. otherwise it continues to append to previous answer options */
-function resetAnswers() {
-    $("nextQ").css("display", "none");
-    //questionIndex++;
-    console.log("On interation " + questionIndex);
-    $("#answerOptions").empty();
-    changeQuestionsText(questionIndex);
-    correctOption = questionsArrays[questionIndex]["correct"];
-    //console.log(correctOption);
-}
-
-/* handles what happnes on nextQ click */
+/* f nextClick displays Next button and handles what happens when nextQ button is clicked */
 function nextClick() {
     $("#nextQ").css("display", "block");
-    $("#nextQ").click(function () {
-        console.log("click");
-        if(questionIndex > 9) {
+    $("#nextQ").off("click").on("click", function () {
+        if (questionIndex === 10 ) {
+            bonusResults();
+        }
+        else if(questionIndex === 9) {
+            /* when the user has answer index 9 question (question 10) and clicks on next the f gameOver is initiated */
             gameOver();
         }
         else {
             timeLeft = 11;
-            contGame();
+            playGame();
         }
     });
 }
 
-/* function keeps the game moving forward as time left decrements by 1 each second */
-function triviaGame() {
-    timeLeft--;
-    $("#timeLeft").text(timeLeft);
-    if (timeLeft === 0) {
-        questionIndex++;
-        wrongs++;
-        pauseGame();
-        nextClick();
-        displayVideo();
-    }
-    if (timeLeft === 10) {
-        resetAnswers();
-    }
-}
-
-/* function that determines if users choice is wrong or right. */
-function isWrongRight() {
-    questionIndex++;
-    pauseGame();
-    nextClick();
-    displayVideo();
-    if ($(event.target).text() === correctOption) {
-        rights++;
-        $(event.target).css("background-color", "#98FB98");
-    }
-    else {
-        wrongs++;
-        $(event.target).css("background-color", "#FFB2B2");
-    }
-}
-
 /* game over function */
 function gameOver() {
-    console.log("Inside game over function");
+    /* hide the #nextQ button from the user */
     $("#nextQ").css("display", "none");
+    /* hide the #gameElements from the user */
     $("#gameElements").css("display", "none");
-    $("#gameResults").css("display", "block");
+    /* display the results of the game */
     let rightsText = $("<p>").text("Right Answers: " + rights);
     let wrongsText = $("<p>").text("Wrong Answers: " + wrongs);
     $(rightsText).add(wrongsText).appendTo("#gameResults");
+    $("#gameResults").css("display", "block");
+    /* displays the #resetGame button */
+    $("#resetGame").css("display", "block");
+    /* if #resetGame button pressed, game is reset */
+    $("#resetGame").one("click",function() {
+        resetGame();
+    });
+    /* displays the #bonusQ option */
     $("#bonusQ").css("display", "block");
-    $("#bonusQ").click(function () {
-        console.log("clicked to answer bonus question.");
-        questionIndex = questionIndex - 1;
-        resetAnswers()
-        timeLeft = 10;
-        $("#timeLeft").text(timeLeft);
-        $("#gameElements").css("display", "block");
-        $("#gameResults").css("display", "none");
+    /* if #bonusQ button pressed, user will anser 1 more question */
+    $("#bonusQ").off("click").on("click", bonusRound);
+}
+
+function bonusRound() {
+    console.log("clicked to answer bonus question.");
+    $("#gameResults").empty();
+    $("#gameResults").css("display", "none");
+    $("#bonusQ").css("display", "none");
+    //resetAnswers();
+    timeLeft = 11;
+    playGame();
+}
+
+function bonusResults() {
+   if ($("#nextQ").css("display")==="block") {
+        $("#nextQ").css("display", "none");
+    }
+   let bonusText = $("<p>").text("Final Results");
+   let rightsText = $("<p>").text("Right Answers: " + rights);
+   let wrongsText = $("<p>").text("Wrong Answers: " + wrongs);
+   $("#gameElements").css("display", "none");
+   $("#gameResults").css("display", "block");
+   $(bonusText).add(rightsText).add(wrongsText).appendTo("#gameResults");
+   $("#resetGame").css("display", "block");
+   $("#resetGame").one("click", function() {
+        resetGame();
     });
 }
 
@@ -289,37 +361,21 @@ function gameOver() {
 function resetGame() {
     rights = 0;
     wrongs = 0;
-    timeLeft = 10;
-    questionIndex = 0;
-    correctOption = "";
-    questionsArrays = [];
-    holdQuestions = [];
-}
-
-/* function to pause game and stop allowing player to select answer choice */
-function pauseGame() {
-    clearInterval(intervalId);
+    timeLeft = 11;
+    questionIndex = undefined;
+    currentQ = undefined;
+    correctOption = undefined;
     gameInProgress = false;
-    $("li").css("background-color", "inherit");
-    $("li").off("mouseenter mouseleave");
-    $("#answerOptions").off("click");
+    intervalId = undefined;
+    questionsArray = [];
+    pauseTime();
+    $("#questionText").empty();
+    $("#answerOptions").empty();
+    $("#video").empty();
+    $("#gameResults").empty();
+    $("#gameResults").css("display", "none");
+    $("#resetGame").css("display", "none");
+    $("#bonusQ").css("display", "none");
+    $("#gameElements").css("display", "none");
+    $("#startGame").css("display", "block");
 }
-
-function contGame() {
-    if (!gameInProgress) {
-        intervalId = setInterval(triviaGame, 1000);
-        gameInProgress = true;
-    };
-}
-
-$(document).ready(function () {
-    $("#startGame").click(function () {
-        $("#startGame").css("display", "none");
-        $("#gameElements").css("display", "block");
-        questionOrder();
-        gameInProgress = false;
-        contGame();
-        changeQuestionsText(questionIndex);
-        correctOption = questionsArrays[questionIndex]["correct"];
-    });
-});

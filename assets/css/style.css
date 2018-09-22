@@ -17,8 +17,13 @@ h1 {
     margin-bottom: 3%;
 }
 
+h3 {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+    margin: 3%;
+}
+
 p {
-    margin-bottom: 1%;
     line-height: 1.5rem;
 }
 
@@ -29,12 +34,19 @@ li {
 }
 #gameElements {
     display: none;
-    border: 1px solid black;
+    /*border: 1px solid black;*/
     width: 75%;
     height: auto;
     margin: auto;
 }
 
+#watchText {
+    font-size: 1.5rem;
+}
+
+#startGame {
+    margin: auto;
+}
 #nextQ {
     display: none;
     margin: auto;
@@ -46,13 +58,19 @@ li {
     width: 75%;
     height: auto;
     margin: auto;
+    padding: 3%;
 }
 #bonusQ {
     display: none;
     margin: auto;
+    margin-top: 2%;
+}
+#resetGame {
+    display: none;
+    margin: auto;
+    margin-top: 2%;
 }
 .wideAspect {
-    border: 1px solid black;
     position: relative;
 	padding-bottom: 56.25%; /* 16:9 */
 	padding-top: 25px;
@@ -60,7 +78,6 @@ li {
 }
 
 .traditionalAspect {
-    border: 1px solid black;
     position: relative;
 	padding-bottom: 75%; /* 4:3 */
 	padding-top: 25px;
@@ -81,4 +98,7 @@ li {
     #gameElements {
         width: 95%;
     }   
+    #gameResults {
+        width: 95%;
+    }
 }
