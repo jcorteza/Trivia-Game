@@ -40,7 +40,7 @@ var powerpuff2 = {
     question: "What was the original name for the show, The Powerpuff Girls?",
     options: ["Girl-Power Crime Fighters", "Kick-Ass Girls", "Whoop-Ass Girls", "Sugar, Spice, Everything Nice"],
     correct: "Whoop-Ass Girls",
-    video: "<iframe width=\"560\" height=\"315\" style=\"display: none\" src=\"https://www.youtube.com/embed/APnZCdiStKI?rel=0\" frameborder=\"0\" allow=\"autoplay; encrypted-media\" allowfullscreen></iframe>"
+    video: "<iframe width=\"560\" height=\"315\" style=\"display: none\" src=\"https://www.youtube.com/embed/Qsx0uF80n8U\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>"
 }
 holdQuestions.push(powerpuff2);
 
@@ -104,6 +104,7 @@ $(document).ready(function () {
         questionIndex = -1;
         /* hide's #startGame button once it has been pressed */
         $("#startGame").css("display", "none");
+        $("#teaserText").css("display", "none");
         /* f questionOrder pushes the question objects into the questions Array in a random order */
         questionOrder();
         console.log(questionsArray);
@@ -157,7 +158,7 @@ function changeQuestionText() {
     });
     /* function handles answer option list item hover effect */
     $("li").hover(function(){
-        $(this).css("background-color", "#f9f9f9");
+        $(this).css("background-color", "rgba(255, 255, 255, 0.9");
     }, function(){
         $(this).css("background-color", "inherit");
     });
@@ -199,18 +200,19 @@ function countdown() {
 function answerRightWrong(liChosen) {
     correctOption = currentQ.correct;
     var that = liChosen;
-    if ($(that).text() === correctOption) {
+    var optionText = $(that).text();
+    if (optionText === correctOption) {
         rights++;
-        $(that).css("background-color", "#98FB98");
-        /*let optionText = $(that).text();
-        $(that).text(optionText + "—You make the cartoon gods proud.");*/
+        $(that)
+          .attr("class", "right")
+          .text(optionText + "—Great guess!");
         pauseGame();
     }
     else {
         wrongs++;
-        $(that).css("background-color", "#FFB2B2");
-        /*let optionText = $(that).text();
-        $(that).text(optionText + "—You call yourself a 90's kid?");*/
+        $(that)
+          .attr("class", "wrong")
+          .text(optionText + "—Nope! Are you even trying?");
         pauseGame();
     }
 }
@@ -243,11 +245,25 @@ function displayVideo() {
         var vidDivText = $("<p>").text("Watch Video");
         $(vidDivText).attr("id", "watchText");
         $(vidDivText).prependTo("#video");
-        $(vidDivText).css("background-color", "#f9f9f9");
+        $(vidDivText)
+          .css("background-color", "rgba(255, 255, 255, 0.9")
+          .css("box-shadow", "2px 2px 50px rgba(0,0,0,0.2)");
         /* click #watchText to run videoVisibility function */
-        $("#watchText").on("click", videoVisibility);
+        $("#watchText")
+          .on("click", videoVisibility);
         /* sets hover properties for #watchText */
-        $("#watchText").hover(function(){$("#watchText").css("background-color", "purple");}, function() {$("#watchText").css("background-color", "yellow");});
+        $("#watchText").hover(
+            function(){
+                $("#watchText")
+                //   .css("background-color", "rgba(235, 235, 235, 0.2")
+                  .css("box-shadow", "0px 0px 0px rgba(0,0,0,0.3)");
+            }, 
+            function() {
+                $("#watchText")
+                // .css("background-color", "rgba(255, 255, 255, 0.8")
+                .css("box-shadow", "5px 5px 25px rgba(0,0,0,0.3)");
+            }
+        );
     }
 }
 
@@ -292,7 +308,9 @@ function resizeVid() {
 
 /* f nextClick displays Next button and handles what happens when nextQ button is clicked */
 function nextClick() {
-    $("#nextQ").css("display", "block");
+    if(questionIndex < questionsArray.length-1) {
+        $("#nextQ").css("display", "block");
+    }
     $("#nextQ").off("click").on("click", function () {
         if (questionIndex === 10 ) {
             bonusResults();
@@ -336,15 +354,13 @@ function bonusRound() {
     $("#gameResults").empty();
     $("#gameResults").css("display", "none");
     $("#bonusQ").css("display", "none");
+    $("#nextQ").css("display", "none");
     //resetAnswers();
     timeLeft = 11;
     playGame();
 }
 
 function bonusResults() {
-   if ($("#nextQ").css("display")==="block") {
-        $("#nextQ").css("display", "none");
-    }
    let bonusText = $("<p>").text("Final Results");
    let rightsText = $("<p>").text("Right Answers: " + rights);
    let wrongsText = $("<p>").text("Wrong Answers: " + wrongs);

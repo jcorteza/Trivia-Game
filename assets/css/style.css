@@ -1,9 +1,11 @@
 body {
     font-size: 16px;
+    background: linear-gradient(180deg, #51E5FF 60%, #EC368D);
+    min-height: 100vh;
+    min-width: 100vw;
 }
 
 .container {
-    border: 1px solid black;
     width: 90%;
     margin: auto;
     padding: 3%;
@@ -12,26 +14,42 @@ body {
 }
 
 h1 {
-    font-weight: bolder;
-    font-size: 2rem;
-    margin-bottom: 3%;
+    font: 2rem 'Chewy', cursive;
+    margin: 3vh 0;
 }
 
 h3 {
-    font-size: 1.25rem;
+    font: 1rem 'Chewy', cursive;
     line-height: 1.5rem;
     margin: 3%;
 }
 
 p {
     line-height: 1.5rem;
+    font-family: 'Oswald', sans-serif;
+    margin-bottom: 3vh;
+}
+
+ul {
+  margin-bottom: 4vh;
 }
 
 li {
     padding: 1rem;
     text-align: left;
-    line-height: 1.5rem;
+    line-height: 1rem;
+    font-family: 'Oswald', sans-serif;
+    box-sizing: border-box;
 }
+
+li.right {
+  border: 5px solid green;
+}
+
+li.wrong {
+  border: 5px solid red;
+}
+
 #gameElements {
     display: none;
     /*border: 1px solid black;*/
